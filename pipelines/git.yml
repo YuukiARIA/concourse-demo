@@ -1,0 +1,21 @@
+resources:
+  - name: repo
+    type: git
+    source:
+      uri: https://github.com/YuukiARIA/concourse-demo.git
+
+jobs:
+  - name: git
+    plan:
+      - get: repo
+      - task: show-repo
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source: { repository: busybox }
+          inputs:
+            - name: repo
+          run:
+            path: ls
+            args: [-al, repo]
