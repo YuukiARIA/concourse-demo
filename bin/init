@@ -1,0 +1,12 @@
+#!/bin/sh
+
+if [ -d ./concourse-keys ]; then
+  echo 'already initialized' >&2
+  exit 1
+fi
+
+mkdir -p ./concourse-keys/host ./concourse-keys/worker
+ssh-keygen -t rsa -b 4096 -N '' -m pem -f ./concourse-keys/host/tsa_host_key
+ssh-keygen -t rsa -b 4096 -N '' -m pem -f ./concourse-keys/worker/worker_key
+cat ./concourse-keys/worker/worker_key.pub >> ./concourse-keys/host/authorized_worker_keys
+cp ./concourse-keys/host/tsa_host_key.pub ./concourse-keys/worker
