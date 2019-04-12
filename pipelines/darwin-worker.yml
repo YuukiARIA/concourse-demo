@@ -1,0 +1,27 @@
+jobs:
+  - name: platform-sample
+    plan:
+      - aggregate:
+          - task: run in linux
+            config:
+              platform: linux
+              image_resource:
+                type: docker-image
+                source: { repository: busybox }
+              run:
+                path: sh
+                args:
+                  - -c
+                  - |
+                    hostname
+                    uname -a
+          - task: run in darwin
+            config:
+              platform: darwin
+              run:
+                path: sh
+                args:
+                  - -c
+                  - |
+                    hostname
+                    uname -a
