@@ -1,5 +1,5 @@
 jobs:
-  - name: hello-pipeline
+  - name: hello-job
     plan:
       - task: hello-task
         config:
