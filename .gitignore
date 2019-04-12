@@ -1,0 +1,6 @@
+# docker mount point
+concourse-keys/
+
+# backup files
+*~
+\#*#
