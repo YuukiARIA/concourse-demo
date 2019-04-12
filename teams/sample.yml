@@ -8,4 +8,3 @@ roles:
   - name: viewer
     local:
       users: [guest]
-
