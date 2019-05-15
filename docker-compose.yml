@@ -11,11 +11,12 @@ services:
       PGDATA:            /database
 
   concourse-web:
-    image: concourse/concourse:5.0.1
+    image: concourse/concourse:5.1.0
     command: web
     privileged: true
     depends_on:
       - concourse-db
+      - minio
     ports:
       - 8080:8080
       - 2222:2222
@@ -31,7 +32,7 @@ services:
       CONCOURSE_MAIN_TEAM_LOCAL_USER: admin
 
   concourse-worker:
-    image: concourse/concourse:5.0.1
+    image: concourse/concourse:5.1.0
     command: worker
     privileged: true
     links:
@@ -42,6 +43,18 @@ services:
       - ./concourse-keys/worker:/concourse-keys
     environment:
       CONCOURSE_TSA_HOST: concourse-web:2222
+
+  minio:
+    image: minio/minio:latest
+    command: server /data
+    volumes:
+      - ./minio-data:/data
+    ports:
+      - 9000:9000
+    environment:
+      MINIO_REGION: ap-northeast-1
+      MINIO_ACCESS_KEY: minio_access_key
+      MINIO_SECRET_KEY: minio_secret_key
 
 volumes:
   concourse-db:
