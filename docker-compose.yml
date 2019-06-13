@@ -1,7 +1,8 @@
 version: '3'
 services:
   concourse-db:
-    image: postgres:11.2
+    container_name: concourse-db
+    image: postgres:11.3
     volumes:
       - concourse-db:/database
     environment:
@@ -11,48 +12,66 @@ services:
       PGDATA:            /database
 
   concourse-web:
-    image: concourse/concourse:5.1.0
+    container_name: concourse-web
+    image: concourse/concourse:5.3.0
     command: web
     privileged: true
     depends_on:
       - concourse-db
-      - minio
-    ports:
-      - 8080:8080
-      - 2222:2222
     volumes:
       - ./concourse-keys/host:/concourse-keys
+    ports:
+      - '8080:8080'
+    env_file:
+      - ./env_files/concourse-web.env
     environment:
-      CONCOURSE_POSTGRES_HOST:        concourse-db
-      CONCOURSE_POSTGRES_USER:        concourse_postgres_user
-      CONCOURSE_POSTGRES_PASSWORD:    concourse_postgres_pass
-      CONCOURSE_POSTGRES_DATABASE:    concourse
-      CONCOURSE_EXTERNAL_URL:         http://127.0.0.1:8080
-      CONCOURSE_ADD_LOCAL_USER:       admin:admin,user1:user1,guest:guest
-      CONCOURSE_MAIN_TEAM_LOCAL_USER: admin
+      CONCOURSE_POSTGRES_HOST:              concourse-db
+      CONCOURSE_POSTGRES_USER:              concourse_postgres_user
+      CONCOURSE_POSTGRES_PASSWORD:          concourse_postgres_pass
+      CONCOURSE_POSTGRES_DATABASE:          concourse
+      CONCOURSE_ADD_LOCAL_USER:             admin:admin,user1:user1,guest:guest
+      CONCOURSE_MAIN_TEAM_LOCAL_USER:       admin
+      CONCOURSE_VAULT_URL:                  http://vault:8200
+      CONCOURSE_VAULT_INSECURE_SKIP_VERIFY: 'true'
+      CONCOURSE_VAULT_AUTH_BACKEND:         approle
+      CONCOURSE_VAULT_PATH_PREFIX:          /secret/concourse
 
   concourse-worker:
-    image: concourse/concourse:5.1.0
+    container_name: concourse-worker
+    image: concourse/concourse:5.3.0
     command: worker
     privileged: true
-    depends_on:
-      - concourse-web
     volumes:
       - ./concourse-keys/worker:/concourse-keys
+    expose:
+      - '7777'
+      - '7788'
     environment:
-      CONCOURSE_TSA_HOST: concourse-web:2222
+      CONCOURSE_TSA_HOST: 'concourse-web:2222'
 
   minio:
-    image: minio/minio:latest
+    container_name: minio
+    image: minio/minio:RELEASE.2019-06-11T00-44-33Z
     command: server /data
     volumes:
       - ./minio-data:/data
     ports:
-      - 9000:9000
+      - '9000:9000'
     environment:
-      MINIO_REGION: ap-northeast-1
+      MINIO_REGION:     ap-northeast-1
       MINIO_ACCESS_KEY: minio_access_key
       MINIO_SECRET_KEY: minio_secret_key
+
+  vault:
+    container_name: vault
+    image: vault:1.1.3
+    command: server
+    volumes:
+    - './vault:/vault/config'
+    ports:
+      - '8200:8200'
+    cap_add:
+      - IPC_LOCK
 
 volumes:
   concourse-db:

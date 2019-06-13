@@ -1,6 +1,9 @@
 # docker mount point
 concourse-keys/
 
+# .env dir
+env_files/
+
 # backup files
 *~
 \#*#
